@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Computare – Signatur-Builder</title>
+<style>
+:root{
+  --bg:#f4f6f4; --surface:#ffffff; --text:#1d231e; --muted:#5f6a61; --line:#d9dfda;
+  --brand:#30A836; --brand-ink:#ffffff; --field:#ffffff; --ok:#1f7a25;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#121512; --surface:#1b1f1c; --text:#e8ece8; --muted:#a3ada5; --line:#2e352f;
+    --brand:#3cbf43; --brand-ink:#0b130c; --field:#232824; --ok:#6fd675; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121512; --surface:#1b1f1c; --text:#e8ece8; --muted:#a3ada5; --line:#2e352f;
+  --brand:#3cbf43; --brand-ink:#0b130c; --field:#232824; --ok:#6fd675; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:15px/1.5 "Segoe UI",system-ui,-apple-system,Arial,sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:32px 20px 48px}
+h1{font-size:24px;margin:0 0 4px}
+.lead{color:var(--muted);margin:0 0 28px}
+.stack{display:grid;gap:20px}
+.fields{display:grid;grid-template-columns:1fr 1fr;column-gap:18px}
+@media (max-width:640px){.fields{grid-template-columns:1fr}}
+.brand{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+.brand img{height:22px;width:auto;background:#ffffff;padding:8px 10px;border-radius:8px;box-sizing:content-box}
+.step{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--brand);color:var(--brand-ink);font-size:12px;margin-right:8px;vertical-align:1px}
+.field-full{grid-column:1/-1}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:22px}
+.card h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 16px}
+label{display:block;font-weight:600;font-size:14px;margin:0 0 6px}
+.hint{font-weight:400;color:var(--muted)}
+input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--field);color:var(--text);font:inherit;margin-bottom:16px}
+input:focus{outline:2px solid var(--brand);outline-offset:1px;border-color:transparent}
+.preview{background:#ffffff;border-radius:8px;border:1px dashed #c9d1ca;padding:24px;overflow-x:auto}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+button{font:inherit;font-weight:600;border-radius:8px;padding:10px 16px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--text)}
+button.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.status{min-height:22px;margin-top:10px;color:var(--ok);font-weight:600}
+ol{padding-left:20px;margin:0}
+ol li{margin-bottom:6px}
+.steps{margin-top:24px}
+code{font-size:13px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><img src="https://raw.githubusercontent.com/Computare-AG/Photos/main/computare_logo_pantone_1_2026.png" alt="Computare"></div>
+  <h1>Signatur-Builder</h1>
+  <p class="lead">Angaben eintragen – unten entsteht deine fertige E-Mail-Signatur zum Kopieren.</p>
+
+  <div class="stack">
+    <div class="card">
+      <h2><span class="step">1</span>Deine Angaben</h2>
+      <div class="fields">
+        <div><label for="name">Vorname Name</label>
+        <input id="name" autocomplete="name" placeholder="Vorname Name"></div>
+        <div><label for="role">Rolle</label>
+        <input id="role" placeholder="z. B. Developer"></div>
+        <div><label for="mobile">Telefon Mobil <span class="hint">(optional)</span></label>
+        <input id="mobile" type="tel" placeholder="+41 79 123 45 67"></div>
+        <div><label for="mail">E-Mail</label>
+        <input id="mail" type="email" placeholder="vorname.name@computare.ch"></div>
+        <div class="field-full"><label for="phone">Telefon Geschäft <span class="hint">(Hauptnummer, vorausgefüllt)</span></label>
+        <input id="phone" type="tel" placeholder="+41 61 712 00 00"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="step">2</span>Deine Signatur</h2>
+      <div class="preview"><div id="sig"></div></div>
+      <div class="actions">
+        <button class="primary" id="copy">Signatur kopieren</button>
+        <button id="copyHtml">HTML-Code kopieren</button>
+      </div>
+      <div class="status" id="status" role="status"></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="step">3</span>Im Mailprogramm einfügen</h2>
+      <ol>
+        <li><strong>Outlook neu / Web:</strong> Einstellungen → Konten → Signaturen → Neue Signatur → einfügen → Speichern</li>
+        <li><strong>Outlook klassisch:</strong> Datei → Optionen → E-Mail → Signaturen → Neu → einfügen</li>
+        <li><strong>Outlook Mac:</strong> Outlook → Einstellungen → Signaturen → + → einfügen</li>
+        <li><strong>Gmail:</strong> Zahnrad → Alle Einstellungen → Allgemein → Signatur → Neu → einfügen → unten speichern</li>
+        <li><strong>Apple Mail:</strong> Einstellungen → Signaturen → + → einfügen, Haken «Immer meine Standardschrift verwenden» entfernen</li>
+      </ol>
+      <p class="hint" style="margin:12px 0 0">Tipp: Danach eine Testmail an dich selbst schicken.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== Konfiguration für alle Mitarbeitenden ===== */
+const CONFIG = {
+  company: "Computare AG",
+  web: "www.computare.ch",
+  webUrl: "https://www.computare.ch",
+  companyPhone: "+41 61 712 00 00",   // Hauptnummer, für alle vorausgefüllt
+  mailDomain: "computare.ch",
+  img: {
+    robot:  "https://raw.githubusercontent.com/Computare-AG/Photos/main/Bildschirmfoto%202026-10-21%20um%2015.30.36.png",
+    logo:   "https://raw.githubusercontent.com/Computare-AG/Photos/main/computare_logo_pantone_1_2026.png",
+    web:    "https://raw.githubusercontent.com/Computare-AG/Photos/main/Name%20Vorname%20%283%29.png",
+    mobile: "https://raw.githubusercontent.com/Computare-AG/Photos/main/Name%20Vorname%20%282%29.png",
+    phone:  "https://raw.githubusercontent.com/Computare-AG/Photos/main/Name%20Vorname%20%281%29.png",
+    mail:   "https://raw.githubusercontent.com/Computare-AG/Photos/main/Name%20Vorname.png"
+  },
+  iconSize: { web:[13,13], mobile:[13,13], phone:[12,12], mail:[13,9] }
+};
+/* ================================================= */
+
+const G = "#30A836", T = "#555555", F = "Arial, Helvetica, sans-serif";
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const tel = s => "tel:" + s.replace(/[^\d+]/g, "");
+
+function row(key, text, href){
+  const [w,h] = CONFIG.iconSize[key];
+  return `<tr>
+<td width="22" valign="middle" align="left" style="padding:0 0 6px 0;width:22px;"><img src="${CONFIG.img[key]}" width="${w}" height="${h}" alt="" style="display:block;border:0;width:${w}px;height:${h}px;"></td>
+<td valign="middle" style="padding:0 0 6px 0;font-family:${F};font-size:13px;line-height:16px;color:${T};white-space:nowrap;"><a href="${esc(href)}" style="color:${T};text-decoration:none;">${esc(text)}</a></td>
+</tr>`;
+}
+
+function build(d){
+  const rows = [row("web", CONFIG.web, CONFIG.webUrl)];
+  if (d.mobile) rows.push(row("mobile", d.mobile, tel(d.mobile)));
+  if (d.phone)  rows.push(row("phone",  d.phone,  tel(d.phone)));
+  rows.push(row("mail", d.mail, "mailto:" + d.mail));
+  const title = d.role ? `${esc(d.role)}, ${esc(CONFIG.company)}` : esc(CONFIG.company);
+  return `<table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;font-family:${F};background:#ffffff;">
+<tr>
+<td valign="middle" align="center" width="110" style="width:110px;padding:0 18px 0 0;">
+<a href="${CONFIG.webUrl}" style="text-decoration:none;"><img src="${CONFIG.img.robot}" width="72" height="87" alt="Computare" style="display:block;border:0;width:72px;height:87px;margin:0 auto;"></a>
+<img src="${CONFIG.img.logo}" width="100" height="19" alt="COMPUTARE Consulting | Trainings | Services" style="display:block;border:0;width:100px;height:19px;margin:10px auto 0 auto;">
+</td>
+<td width="2" bgcolor="${G}" style="width:2px;background:${G};font-size:0;line-height:0;">&nbsp;</td>
+<td valign="top" style="padding:2px 0 2px 16px;">
+<table cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse:collapse;">
+<tr><td colspan="2" style="padding:0 0 4px 0;font-family:${F};font-size:18px;line-height:22px;font-weight:bold;color:${G};white-space:nowrap;">${esc(d.name)}</td></tr>
+<tr><td colspan="2" style="padding:0 0 10px 0;font-family:${F};font-size:13px;line-height:16px;color:${T};white-space:nowrap;">${title}</td></tr>
+${rows.join("\n")}
+</table>
+</td>
+</tr>
+</table>`;
+}
+
+function data(){
+  return {
+    name:   $("name").value.trim()   || "Vorname Name",
+    role:   $("role").value.trim()   || "Rolle",
+    mobile: $("mobile").value.trim(),
+    phone:  $("phone").value.trim(),
+    mail:   $("mail").value.trim()   || "vorname.name@computare.ch"
+  };
+}
+function render(){ $("sig").innerHTML = build(data()); }
+
+function plainText(d){
+  return [d.name, `${d.role}, ${CONFIG.company}`, CONFIG.web, d.mobile, d.phone, d.mail].filter(Boolean).join("\n");
+}
+function say(msg){ $("status").textContent = msg; setTimeout(()=>{ $("status").textContent=""; }, 4000); }
+
+function copyBySelection(){
+  const r = document.createRange(); r.selectNodeContents($("sig"));
+  const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+  let ok = false; try { ok = document.execCommand("copy"); } catch(e){}
+  s.removeAllRanges();
+  return ok;
+}
+
+$("copy").addEventListener("click", async () => {
+  if (!$("name").value.trim() || !$("mail").value.trim()) { say("Bitte mindestens Name und E-Mail ausfüllen."); return; }
+  const html = build(data());
+  try {
+    await navigator.clipboard.write([new ClipboardItem({
+      "text/html":  new Blob([html], {type:"text/html"}),
+      "text/plain": new Blob([plainText(data())], {type:"text/plain"})
+    })]);
+    say("Kopiert – jetzt im Signatur-Editor einfügen (Ctrl/Cmd + V).");
+  } catch(e) {
+    say(copyBySelection() ? "Kopiert – jetzt im Signatur-Editor einfügen (Ctrl/Cmd + V)."
+                          : "Kopieren blockiert: Vorschau mit der Maus markieren und Ctrl/Cmd + C drücken.");
+  }
+});
+
+$("copyHtml").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText(build(data())); say("HTML-Code kopiert."); }
+  catch(e){ say("Kopieren blockiert – bitte Seite in Chrome oder Edge öffnen."); }
+});
+
+if (CONFIG.companyPhone) $("phone").value = CONFIG.companyPhone;
+// E-Mail automatisch aus dem Namen vorschlagen, solange sie nicht selbst geändert wurde
+let mailTouched = false;
+const slug = s => s.toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss")
+  .normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z\s-]/g,"").trim().split(/\s+/).join(".");
+$("mail").addEventListener("input", () => { mailTouched = $("mail").value.trim() !== ""; });
+$("name").addEventListener("input", () => {
+  if (!mailTouched) { const n = slug($("name").value); $("mail").value = n ? n + "@" + CONFIG.mailDomain : ""; }
+});
+["name","role","mobile","mail","phone"].forEach(id => $(id).addEventListener("input", render));
+render();
+</script>
+</body>
+</html>
